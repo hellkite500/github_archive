@@ -57,3 +57,31 @@ class TestGetGithub(unittest.TestCase):
         self.assertTrue((TestGetGithub._current_dir/pattern.format(name='pulls_comments')).exists())
         self.assertTrue((TestGetGithub._current_dir/pattern.format(name='pulls_review_comments')).exists())
 
+    def test_clone_and_archive(self):
+        """
+            Test the clone functionality
+        """
+        clone_url = self.repo.clone_url
+        archive_name = clone_and_archive(self.repo_string, clone_url, self.time, TestGetGithub._current_dir, [])
+        name = '{repo}_github_archive_{time}.tar.gz'.format(repo=self.repo_string, time=self.time)
+        self.assertEqual(archive_name.name, name)
+        self.assertTrue((TestGetGithub._current_dir/name).exists())
+        #TODO test existence of repo in archive
+
+    def test_clone_and_archive_1(self):
+        """
+            Test cloning a repo with a wiki
+        """
+        #Sorta hackily testing the archive_repo logic here...FIXME later
+        self.assertTrue(self.wiki_repo.has_wiki)
+        wiki_url = self.wiki_repo.clone_url[:-3]+'wiki.git'
+
+        #finally get the repo code itself
+        clone_url = self.wiki_repo.clone_url
+        archive_name = clone_and_archive(self.repo_w_wiki, clone_url, self.time, TestGetGithub._current_dir, [], wiki_url)
+
+        name = '{repo}_github_archive_{time}.tar.gz'.format(repo=self.repo_w_wiki, time=self.time)
+        self.assertEqual(archive_name.name, name)
+        self.assertTrue((TestGetGithub._current_dir/name).exists())
+        #TODO test existense of wiki in archive
+
