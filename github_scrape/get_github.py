@@ -60,7 +60,7 @@ def clone_and_archive(repo_name, url, time, destination: Path, meta=[], wiki_url
     shutil.rmtree(clone_to)
     if wiki_url:
         shutil.rmtree(wiki_to)
-    
+
     return output_to
 
 def get_repo_meta(repo: 'Repository', time: str, destination: Path) -> Iterable[str]:
@@ -126,6 +126,7 @@ def archive_repo(repo: 'Repository', time: str, destination: Path):
     """
 
     meta = get_repo_meta(repo, time, destination)
+    repo_name = repo.full_name.split('/')[-1]
     wiki_url = ''
     if repo.has_wiki:
         #Remove .git from clone_url, append .wiki.git to get wiki repo
@@ -166,13 +167,13 @@ def archive_org_repos(organization: str, api_token: str, destination: Path, type
     for repo in org.get_repos():
         if type == 'all':
             #Archive all repos, regardless of status
-            archive_repo(repo, time)
+            archive_repo(repo, time, destination)
         elif not repo.private and type == 'public':
             #only archive public repositories
-            archive_repo(repo, time)
+            archive_repo(repo, time, destination)
         elif repo.private and type == 'private':
             #only archive private repositories
-            archive_repo(repo, time)
+            archive_repo(repo, time, destination)
         else:
             continue
 
