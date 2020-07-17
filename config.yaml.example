@@ -1,0 +1,4 @@
+org: NOAA-OWP
+token: 'api auth token'
+repo_type: 'public'
+destination: ./path/to/archive/destination
