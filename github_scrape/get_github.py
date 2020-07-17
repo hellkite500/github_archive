@@ -176,3 +176,5 @@ def archive_org_repos(organization: str, api_token: str, destination: Path, type
         else:
             continue
 
+if __name__ == "__main__":
+    raise RuntimeError('Module {} called directly; use main package entrypoint instead')
