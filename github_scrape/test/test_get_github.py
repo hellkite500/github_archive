@@ -63,6 +63,9 @@ class TestGetGithub(unittest.TestCase):
         """
             Test the clone functionality
         """
+        #Sorta hackily testing the archive_repo logic here...FIXME later
+        #FIXME has_wiki is broke!!!
+        self.assertFalse(self.repo.has_wiki)
         clone_url = self.repo.clone_url
         archive_name = clone_and_archive(self.repo_string, clone_url, self.time, TestGetGithub._current_dir, [])
         name = '{repo}_github_archive_{time}.tar.gz'.format(repo=self.repo_string, time=self.time)
