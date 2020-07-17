@@ -100,3 +100,27 @@ def get_repo_meta(repo: 'Repository', time: str, destination: Path) -> Iterable[
     #If release artififacts exist
     #releases = repo.get_releases()
     return meta
+
+def archive_repo(repo: 'Repository', time: str, destination: Path):
+    """
+        Pull all relevant metadata about repository, clone the repository, and
+        archive the information in a tar.gz archive suffixed with the time provided.
+
+        Parameters
+        ----------
+        repo        github Repository object to archive
+        time        timestamp to append to output files
+        destination Path to the output location to store the archive.
+    """
+
+    meta = get_repo_meta(repo, time, destination)
+    wiki_url = ''
+    if repo.has_wiki:
+        #Remove .git from clone_url, append .wiki.git to get wiki repo
+        wiki_url = repo.clone_url[:-3]+'wiki.git'
+
+    #finally get the repo code itself
+    clone_url = repo.clone_url
+    archive_name = clone_and_archive(repo_name, clone_url, time, destination, meta, wiki_url)
+    print("Repo {} archived at {}".format(repo_name, archive_name))
+
