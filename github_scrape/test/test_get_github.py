@@ -2,7 +2,9 @@ import unittest
 from pathlib import Path
 from time import strftime, gmtime
 from github import Github
+import json
 from .. import get_repo_meta, clone_and_archive
+from ..get_github import dump_list
 
 class TestGetGithub(unittest.TestCase):
     """
@@ -85,3 +87,11 @@ class TestGetGithub(unittest.TestCase):
         self.assertTrue((TestGetGithub._current_dir/name).exists())
         #TODO test existense of wiki in archive
 
+    @unittest.skip("Incomplete mock implementation for dumped item")
+    def test_dump_list(self):
+        pass
+        #Quick json format test for list objects
+        outfile = dump_list("test_repo", self.time, TestGetGithub._current_dir, "test_key", [ '{json=dict, test=values}', 'json=dict2, test=values2}'])
+        with open(outfile) as fp:
+            data = json.load(fp)
+            self.assertTrue(data['json'], 'dict')
