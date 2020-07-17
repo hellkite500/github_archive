@@ -13,6 +13,21 @@ from typing import TYPE_CHECKING, Iterable
 
 if TYPE_CHECKING:
     from github import Repository
+
+def dump_list(repo_name, time, destination: Path, output_name, obj):
+    output_file = destination/"{repo}_{name}_{time}.json".format(repo=repo_name, name=output_name, time=time)
+
+    with open(output_file, 'w') as outfile:
+        outfile.write("{{ {name} = [\n".format(name=output_name))
+        for item in obj:
+            #json.dump(item, outfile)
+            json.dump(item.raw_data, outfile)
+            outfile.write(',\n')
+        outfile.seek(outfile.tell() - 2, os.SEEK_SET)
+        outfile.truncate()
+        outfile.write("\n]\n}\n")
+    return output_file
+
 def clone_and_archive(repo_name, url, time, destination: Path, meta=[], wiki_url=''):
     output_to = destination/'{repo}_github_archive_{time}.tar.gz'.format(repo=repo_name, time=time)
     archive_name = '{repo}_{time}'.format(repo=repo_name, time=time)
@@ -35,3 +50,53 @@ def clone_and_archive(repo_name, url, time, destination: Path, meta=[], wiki_url
         shutil.rmtree(wiki_to)
     
     return output_to
+
+def get_repo_meta(repo: 'Repository', time: str, destination: Path) -> Iterable[str]:
+    """
+        Query the Github api for repository metadata info, includes
+        comments, issues, issue comments, pull requests, pull request comments, code review comments
+
+        Parameters
+        ----------
+            repo   a Github.Repository object to retrieve meatadata for
+            time   timestamp to append to output files
+            destination Path to destination dirctory where serialized metadata will be written to
+        Returns
+        -------
+            list of file names which contain the serialized meta data for each of the supported types (in json format)
+    """
+    #Hold a list of all metadata to dump for archving
+    meta = []
+    repo_name = repo.full_name.split('/')[-1]
+    dump = partial(dump_list, repo_name, time, destination)
+    #get all comments for repo
+    comments = repo.get_comments()
+    meta.append( dump("comments", comments) )
+
+    #get all issues
+    issues = repo.get_issues(state="all")
+    meta.append( dump("issues", issues) )
+
+    #Get all comments on issues
+    issue_comments = repo.get_issues_comments()
+    meta.append( dump("issue_comments", issue_comments) )
+
+    #Get pull requests
+    pulls = repo.get_pulls(state="all")
+    meta.append( dump("pulls", pulls) )
+
+    #Get pull request comments (conversation)
+    pull_comments = repo.get_pulls_comments()
+    meta.append( dump("pulls_comments", pull_comments) )
+
+    #Get all code review comments for PRs
+    pull_review_comments = repo.get_pulls_review_comments()
+    meta.append( dump("pulls_review_comments", pull_review_comments) )
+
+    #If used, get project info
+    #if repo.has_projects:
+        #projects = repo.get_projects()
+
+    #If release artififacts exist
+    #releases = repo.get_releases()
+    return meta
