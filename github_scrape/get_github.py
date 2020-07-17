@@ -30,6 +30,16 @@ def dump_list(repo_name, time, destination: Path, output_name, obj):
         outfile.write("\n]\n}\n")
     return output_file
 
+def download_archive(repo_name, link):
+    output_to = "{repo}_archive.tar.gz".format(repo=repo_name)
+    with requests.get(link, stream=True) as req:
+        req.raise_for_status()
+        with open(output_to , "wb") as outfile:
+            for chunk in req.iter_content(chunk_size=8192):
+                if chunk:
+                    outfile.write(chunk)
+    return output_to
+
 def clone_and_archive(repo_name, url, time, destination: Path, meta=[], wiki_url=''):
     output_to = destination/'{repo}_github_archive_{time}.tar.gz'.format(repo=repo_name, time=time)
     archive_name = '{repo}_{time}'.format(repo=repo_name, time=time)
