@@ -14,6 +14,8 @@ from typing import TYPE_CHECKING, Iterable
 if TYPE_CHECKING:
     from github import Repository
 
+_repo_types = ['public', 'private', 'all']
+
 def dump_list(repo_name, time, destination: Path, output_name, obj):
     output_file = destination/"{repo}_{name}_{time}.json".format(repo=repo_name, name=output_name, time=time)
 
@@ -123,4 +125,44 @@ def archive_repo(repo: 'Repository', time: str, destination: Path):
     clone_url = repo.clone_url
     archive_name = clone_and_archive(repo_name, clone_url, time, destination, meta, wiki_url)
     print("Repo {} archived at {}".format(repo_name, archive_name))
+
+def archive_org_repos(organization: str, api_token: str, destination: Path, type: str = 'public'):
+    """
+        Find all repositories in the given organization and use the api_token to scrape repo data
+
+        Parameters
+        ----------
+        organization    str containing the organization name, i.e. NOAA-OWP
+
+        api_token       API token with approriate access permissions for the requested type of repos to archive
+
+        destination     Path to the output location to store the archive.
+
+        type            the type of repositories to archive, may be 'all', 'public', 'private'
+
+    """
+
+    if type not in _repo_types:
+        raise ValueError("Unsupported repo type: {}. Valid options are {}".format(type, _repo_types))
+    #Timestamp to build output files
+    time = strftime("%Y-%m-%d_%H:%M:%S", gmtime())
+    #Connect to the github organization
+    gh = Github(api_token)
+    org = gh.get_organization(organization)
+
+    #TODO check that this is limited to only PUBLIC repositories, or at least flexible enough to differentiate
+    #Make funcitons with public/private/all option, verify repo status, make input param
+
+    for repo in org.get_repos():
+        if type == 'all':
+            #Archive all repos, regardless of status
+            archive_repo(repo, time)
+        elif not repo.private and type == 'public':
+            #only archive public repositories
+            archive_repo(repo, time)
+        elif repo.private and type == 'private':
+            #only archive private repositories
+            archive_repo(repo, time)
+        else:
+            continue
 
