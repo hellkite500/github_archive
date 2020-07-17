@@ -1,0 +1,3 @@
+pygithub
+gitpython
+pyyaml
