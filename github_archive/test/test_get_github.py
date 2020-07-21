@@ -1,10 +1,13 @@
 import unittest
+from typing import Optional
 from pathlib import Path
 from time import strftime, gmtime
 from github import Github
 import json
+import yaml
 from .. import get_repo_meta, clone_and_archive
 from ..get_github import dump_list
+from pathlib import Path
 
 class TestGetGithub(unittest.TestCase):
     """
@@ -12,8 +15,58 @@ class TestGetGithub(unittest.TestCase):
     """
     _current_dir = Path(__file__).resolve().parent
 
+    #BORROWED from https://github.com/NOAA-OWP/DMOD/blob/master/python/lib/scheduler/dmod/test/it_redisManager.py
+    @classmethod
+    def find_project_root_directory(cls, current_directory: Optional[Path]) -> Optional[Path]:
+        """
+        Given a directory (with ``None`` implying the current directory) assumed to be at or under this project's root,
+        find the project root directory.
+        This implementation attempts to find a directory having both a ``.git/`` child directory and a ``.env`` file.
+        Parameters
+        ----------
+        current_directory
+        Returns
+        -------
+        Optional[Path]
+            The project root directory, or ``None`` if it fails to find it.
+        """
+        if not current_directory:
+            current_directory = TestGetGithub._current_dir
+        abs_root = Path(current_directory.absolute().root)
+        while current_directory.absolute() != abs_root:
+            if not current_directory.is_dir():
+                current_directory = current_directory.parent
+                continue
+            git_sub_dir = current_directory.joinpath('.git')
+            child_env_file = current_directory.joinpath('config.yaml')
+            if git_sub_dir.exists() and git_sub_dir.is_dir() and child_env_file.exists() and child_env_file.is_file():
+                return current_directory
+            current_directory = current_directory.parent
+        return None
+
+    @classmethod
+    def load_token(cls):
+        """
+            Read an API token from a configuration file, if none found, use '' for no auth
+        """
+        token = ''
+        root_dir = cls.find_project_root_directory(None)
+        if not root_dir:
+            return token
+
+        config_file = root_dir/'config.yaml'
+        if config_file.exists():
+            with open(config_file) as file:
+                config = yaml.load(file, Loader=yaml.FullLoader)
+                try:
+                    token = config['token']
+                except:
+                    print("Unable to load api-token from project root directory config.yaml")
+
+        return token
+
     def setUp(self):
-        self.token = ''
+        self.token = self.load_token()
         if self.token:
             #Token auth github, higher rate limit
             self.github = Github(self.token)
