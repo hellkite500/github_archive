@@ -1,5 +1,6 @@
 #deployment specific configuration
-config.yml
+*.yml
+*.yaml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
