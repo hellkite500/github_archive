@@ -10,6 +10,11 @@ def _handle_args():
                         help='Set the YAML file for the Github organization configuration',
                         dest='config',
                         default='config.yaml')
+    parser.add_argument('--skip',
+                        help='List of repositories to skip',
+                        dest='skip',
+                        nargs='*',
+                        type=str)
 
     parser.prog = package_name
     return parser.parse_args()
@@ -27,7 +32,7 @@ def main():
 
     #Run the archiver
     #TODO validate config options???
-    archive_org_repos(config['org'], config['token'], Path(config['destination']), config['repo_type'])
+    archive_org_repos(config['org'], config['token'], Path(config['destination']), config['repo_type'], args.skip)
 
 
 if __name__ == '__main__':

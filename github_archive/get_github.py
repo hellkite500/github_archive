@@ -143,7 +143,7 @@ def archive_repo(repo: 'Repository', time: str, destination: Path):
     archive_name = clone_and_archive(repo_name, clone_url, time, destination, meta, wiki_url)
     print("Repo {} archived at {}".format(repo_name, archive_name))
 
-def archive_org_repos(organization: str, api_token: str, destination: Path, type: str = 'public'):
+def archive_org_repos(organization: str, api_token: str, destination: Path, type: str = 'public', skip: Iterable[str] = []):
     """
         Find all repositories in the given organization and use the api_token to scrape repo data
 
@@ -157,6 +157,7 @@ def archive_org_repos(organization: str, api_token: str, destination: Path, type
 
         type            the type of repositories to archive, may be 'all', 'public', 'private'
 
+        skip            list of repositories to skip
     """
 
     if type not in _repo_types:
@@ -169,8 +170,13 @@ def archive_org_repos(organization: str, api_token: str, destination: Path, type
 
     #TODO check that this is limited to only PUBLIC repositories, or at least flexible enough to differentiate
     #Make funcitons with public/private/all option, verify repo status, make input param
-
+    
     for repo in org.get_repos():
+        name = repo.full_name.split('/')[-1]
+        print(f'Processing repo {name}')
+        if name in skip:
+            print(f'Skipping repo {name}...')
+            continue
         if type == 'all':
             #Archive all repos, regardless of status
             archive_repo(repo, time, destination)
