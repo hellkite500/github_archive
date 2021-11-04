@@ -15,22 +15,22 @@ with open(join(root_dir, 'README.md'), mode='r') as f:
     long_description = f.read()
 
 #Load version info
-exec(open('github_scrape/_version.py').read())
+exec(open('github_archive/__version__.py').read())
 
 setup(
     # Package version and information
-    name='github_scrape',
+    name='github_archive',
     version=__version__,
     packages=find_packages(exclude=['*test*']),
-    url='https://github.com/hellkite500/github_scrape',
+    url='https://github.com/hellkite500/github_archive',
 
     # Set entry point for CLI
     entry_points= {
-        'console_scripts' : ['github_scrape=github_scrape.__main__:main'],
+        'console_scripts' : ['github_archive=github_archive.__main__:main'],
         },
 
     # Package description information
-    description=short_description
+    description=short_description,
     long_description_content_type='text/markdown',
 
     # Author information
