@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import tarfile
 from github import Github
-from git import Repo
+from git import Repo, exc
 import json
 import requests
 from time import strftime, gmtime
@@ -47,7 +47,11 @@ def clone_and_archive(repo_name, url, time, destination: Path, meta=[], wiki_url
     Repo.clone_from(url, clone_to)
     if wiki_url:
         wiki_to = '{repo}_wiki_{time}'.format(repo=repo_name, time=time)
-        Repo.clone_from(wiki_url, wiki_to)
+        try:
+             Repo.clone_from(wiki_url, wiki_to)
+        except exc.GitCommandError as error:
+            print(f"Not archiving wiki repo for {url}.  It likely doesn't exist, or doesn't have public permissions.")
+            wiki_url = '' #Unset the url if it failed to clone so we don't archive it next...
 
     with tarfile.open(output_to, mode='w:gz') as tf:
         tf.add(clone_to, arcname='{}/repo/{}'.format(archive_name, clone_to))
@@ -129,9 +133,11 @@ def archive_repo(repo: 'Repository', time: str, destination: Path):
     repo_name = repo.full_name.split('/')[-1]
     wiki_url = ''
     if repo.has_wiki:
+        #Note this just tells us whether the wiki is enabled for the repo
+        #but it appears that if no content has been added to the wiki, the git repo isn't created
+        #hence this url may be invalid. Should treat is as potentialy non-existent.
         #Remove .git from clone_url, append .wiki.git to get wiki repo
         wiki_url = repo.clone_url[:-3]+'wiki.git'
-
     #finally get the repo code itself
     clone_url = repo.clone_url
     archive_name = clone_and_archive(repo_name, clone_url, time, destination, meta, wiki_url)
