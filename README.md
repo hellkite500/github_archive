@@ -6,7 +6,7 @@ Current support is for archiving repositories under an Organization.
 # Usage
 Simply create a configuration file, an example is provided in [config.yaml.example](config.yaml.example) and pass it to the module.
 
-```python -m github_scrape --config-yaml config.yaml```
+```python -m github_archive --config-yaml config.yaml```
 
 If `--config-yaml ` is not passed, will look for `config.yaml` in the current working directory.  
 # Output
