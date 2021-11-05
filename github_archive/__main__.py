@@ -10,9 +10,15 @@ def _handle_args():
                         help='Set the YAML file for the Github organization configuration',
                         dest='config',
                         default='config.yaml')
-    parser.add_argument('--skip',
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('--skip',
                         help='List of repositories to skip',
                         dest='skip',
+                        nargs='*',
+                        type=str)
+    group.add_argument('--only',
+                        help='List explictly the repo names in the org to archive',
+                        dest='only',
                         nargs='*',
                         type=str)
 
@@ -32,7 +38,7 @@ def main():
 
     #Run the archiver
     #TODO validate config options???
-    archive_org_repos(config['org'], config['token'], Path(config['destination']), config['repo_type'], args.skip)
+    archive_org_repos(config['org'], config['token'], Path(config['destination']), config['repo_type'], args.skip, args.only)
 
 
 if __name__ == '__main__':

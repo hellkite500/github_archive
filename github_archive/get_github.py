@@ -143,7 +143,7 @@ def archive_repo(repo: 'Repository', time: str, destination: Path):
     archive_name = clone_and_archive(repo_name, clone_url, time, destination, meta, wiki_url)
     print("Repo {} archived at {}".format(repo_name, archive_name))
 
-def archive_org_repos(organization: str, api_token: str, destination: Path, type: str = 'public', skip: Iterable[str] = []):
+def archive_org_repos(organization: str, api_token: str, destination: Path, type: str = 'public', skip: Iterable[str] = [], only: Iterable[str] = []):
     """
         Find all repositories in the given organization and use the api_token to scrape repo data
 
@@ -158,7 +158,13 @@ def archive_org_repos(organization: str, api_token: str, destination: Path, type
         type            the type of repositories to archive, may be 'all', 'public', 'private'
 
         skip            list of repositories to skip
+        only            list of repositories to archive
+
+	skip and only are mutually exclusive arguements.  If skip is not empty, only must be.  If only is not empy, skip must be.
     """
+
+    if skip and only:
+        raise( ValueError("skip and only are both non-empty, only one can be applied.") )
 
     if type not in _repo_types:
         raise ValueError("Unsupported repo type: {}. Valid options are {}".format(type, _repo_types))
@@ -173,21 +179,25 @@ def archive_org_repos(organization: str, api_token: str, destination: Path, type
     
     for repo in org.get_repos():
         name = repo.full_name.split('/')[-1]
-        print(f'Processing repo {name}')
-        if name in skip:
+        if skip and name in skip:
             print(f'Skipping repo {name}...')
             continue
-        if type == 'all':
-            #Archive all repos, regardless of status
-            archive_repo(repo, time, destination)
-        elif not repo.private and type == 'public':
-            #only archive public repositories
-            archive_repo(repo, time, destination)
-        elif repo.private and type == 'private':
-            #only archive private repositories
-            archive_repo(repo, time, destination)
-        else:
-            continue
+        elif not only or name in only:
+            #We either are skipping specific repos, in which case we get here by `not only`.
+            #Or we are only processing certain repos, in which case get here by `name in only`.
+            #If we are doing neither of those, then both are True and we process all repos
+            print(f'Processing repo {name}')
+            if type == 'all':
+                #Archive all repos, regardless of status
+                archive_repo(repo, time, destination)
+            elif not repo.private and type == 'public':
+                #only archive public repositories
+                archive_repo(repo, time, destination)
+            elif repo.private and type == 'private':
+                #only archive private repositories
+                archive_repo(repo, time, destination)
+            else:
+                continue
 
 if __name__ == "__main__":
     raise RuntimeError('Module {} called directly; use main package entrypoint instead')
