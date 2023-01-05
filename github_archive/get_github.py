@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 import tarfile
-from github import Github
+#Rate limit retries provided by GithubRetry are currently only available from this PR branch
+#https://github.com/PyGithub/PyGithub/pull/2387
+#so to use this, that branch needs to be pulled and pygithub installed from there.
+from github import Github, GithubRetry
 from git import Repo, exc
 import json
 import requests
@@ -171,7 +174,7 @@ def archive_org_repos(organization: str, api_token: str, destination: Path, type
     #Timestamp to build output files
     time = strftime("%Y-%m-%d_%H:%M:%S", gmtime())
     #Connect to the github organization
-    gh = Github(api_token)
+    gh = Github(api_token, retry=GithubRetry(total=11))
     org = gh.get_organization(organization)
 
     #TODO check that this is limited to only PUBLIC repositories, or at least flexible enough to differentiate
@@ -187,6 +190,7 @@ def archive_org_repos(organization: str, api_token: str, destination: Path, type
             #Or we are only processing certain repos, in which case get here by `name in only`.
             #If we are doing neither of those, then both are True and we process all repos
             print(f'Processing repo {name}')
+            print("    current API rate limit: {}".format(gh.get_rate_limit().core) )
             if type == 'all':
                 #Archive all repos, regardless of status
                 archive_repo(repo, time, destination)
