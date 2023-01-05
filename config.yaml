@@ -1,4 +1,4 @@
 org: NOAA-OWP
-token: '476b12c5abc8425f5c6bb6477377e3560d60fdce'
+token: ''
 repo_type: 'public'
 destination: ./
