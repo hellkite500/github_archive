@@ -11,6 +11,11 @@ from pathlib import Path
 from functools import partial
 from typing import TYPE_CHECKING, Iterable
 
+# TODO pull disscussions, may need to use the github graphql api directly:
+# https://docs.github.com/en/graphql/guides/using-the-graphql-api-for-discussions
+# TODO pull project info using pygithub
+# https://pygithub.readthedocs.io/en/latest/github_objects/Project.html#
+
 if TYPE_CHECKING:
     from github import Repository
 
